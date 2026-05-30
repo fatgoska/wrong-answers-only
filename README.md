@@ -31,7 +31,7 @@ You pick a topic. The AI generates a real trivia question with **four plausible-
 ## How to run locally
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/wrong-answers-only
+git clone https://github.com/fatgoska/wrong-answers-only
 cd wrong-answers-only
 cp .env.example .env
 # Add your Groq API key (free at console.groq.com)
