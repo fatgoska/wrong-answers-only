@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Wrong Answers Only 🎭</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;700;800&family=Syne+Mono&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --black:#080808;
+  --yellow:#F5C518;
+  --red:#E8003D;
+  --green:#00FF87;
+  --white:#F0EBE1;
+  --grey:#111;
+  --mid:#222;
+  --dim:#333;
+  --font-display:'Bebas Neue',sans-serif;
+  --font-body:'Syne',sans-serif;
+  --font-mono:'Syne Mono',monospace;
+}
+
+html,body{height:100%;background:var(--black);color:var(--white);font-family:var(--font-body);overflow-x:hidden}
+
+/* NOISE OVERLAY */
+body::after{
+  content:'';position:fixed;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:9998;opacity:0.4;
+}
+
+/* TICKER */
+.ticker-wrap{position:fixed;top:0;width:100%;background:var(--yellow);height:2rem;overflow:hidden;z-index:1000}
+.ticker-track{display:flex;animation:ticker 20s linear infinite;white-space:nowrap;height:100%;align-items:center}
+.ticker-track span{font-family:var(--font-display);font-size:0.9rem;letter-spacing:0.1em;color:var(--black);padding:0 2rem}
+.ticker-track span.dot{color:var(--red);font-size:1.2rem;padding:0}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* LAYOUT */
+#app{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3.5rem 1.5rem 2rem;position:relative}
+
+.screen{display:none;width:100%;max-width:720px;flex-direction:column;align-items:center;gap:2rem}
+.screen.active{display:flex}
+
+/* HOME SCREEN */
+.hero{width:100%;text-align:center;position:relative;padding:2rem 0}
+
+.hero-label{
+  font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.3em;
+  color:var(--red);text-transform:uppercase;margin-bottom:1rem;
+  display:flex;align-items:center;justify-content:center;gap:0.5rem
+}
+.hero-label::before,.hero-label::after{content:'';flex:1;height:1px;background:var(--red);opacity:0.4}
+
+.logo-wrap{line-height:0.85;margin-bottom:0.5rem}
+.logo-wrong{
+  font-family:var(--font-display);
+  font-size:clamp(5rem,20vw,11rem);
+  color:var(--yellow);
+  display:block;
+  letter-spacing:-0.02em;
+  text-shadow:5px 5px 0 var(--red),-1px -1px 0 rgba(255,255,255,0.1);
+  animation:glitch 6s infinite;
+  position:relative
+}
+.logo-answers{
+  font-family:var(--font-display);
+  font-size:clamp(2.5rem,9vw,5rem);
+  color:var(--white);
+  display:block;
+  letter-spacing:0.15em
+}
+.logo-only{
+  font-family:var(--font-display);
+  font-size:clamp(3.5rem,13vw,7.5rem);
+  color:transparent;
+  -webkit-text-stroke:2px var(--red);
+  display:block;
+  letter-spacing:0.05em
+}
+
+@keyframes glitch{
+  0%,90%,100%{text-shadow:5px 5px 0 var(--red),-1px -1px 0 rgba(255,255,255,0.1)}
+  92%{text-shadow:-5px 5px 0 var(--red),5px -5px 0 cyan;transform:skewX(-1deg)}
+  94%{text-shadow:5px -5px 0 var(--red),-5px 5px 0 magenta;transform:skewX(1deg)}
+  96%{text-shadow:5px 5px 0 var(--red);transform:skewX(0)}
+}
+
+.tagline{
+  font-size:0.95rem;color:rgba(240,235,225,0.45);
+  font-style:italic;letter-spacing:0.02em;margin-top:0.5rem
+}
+
+/* INPUT AREA */
+.input-section{width:100%;display:flex;flex-direction:column;gap:1rem}
+
+.input-row{display:flex;gap:0.75rem}
+.topic-input{
+  flex:1;background:var(--grey);
+  border:1px solid var(--dim);border-radius:2px;
+  color:var(--white);font-family:var(--font-body);font-size:1rem;
+  padding:0.9rem 1.2rem;outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s;
+  caret-color:var(--yellow)
+}
+.topic-input:focus{border-color:var(--yellow);box-shadow:0 0 0 3px rgba(245,197,24,0.1)}
+.topic-input::placeholder{color:rgba(240,235,225,0.25)}
+
+/* STYLE PICKER */
+.style-row{display:flex;gap:0.5rem;flex-wrap:wrap}
+.style-label{font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0.2em;color:rgba(240,235,225,0.35);text-transform:uppercase;align-self:center;margin-right:0.25rem}
+.style-btn{
+  font-family:var(--font-mono);font-size:0.72rem;
+  padding:0.4rem 0.9rem;border-radius:2px;cursor:pointer;
+  border:1px solid var(--dim);background:transparent;
+  color:rgba(240,235,225,0.5);transition:all 0.15s;letter-spacing:0.05em
+}
+.style-btn:hover{border-color:var(--yellow);color:var(--yellow)}
+.style-btn.active{border-color:var(--yellow);background:rgba(245,197,24,0.1);color:var(--yellow)}
+
+/* CHIPS */
+.chips{display:flex;flex-wrap:wrap;gap:0.4rem}
+.chip{
+  background:transparent;border:1px solid var(--dim);
+  color:rgba(240,235,225,0.45);font-family:var(--font-body);font-size:0.8rem;
+  padding:0.3rem 0.75rem;border-radius:999px;cursor:pointer;transition:all 0.15s
+}
+.chip:hover{border-color:rgba(240,235,225,0.4);color:var(--white)}
+
+/* BUTTONS */
+.btn{
+  font-family:var(--font-display);font-size:1.3rem;letter-spacing:0.08em;
+  padding:0.9rem 2.2rem;border:none;cursor:pointer;border-radius:2px;
+  transition:transform 0.1s,box-shadow 0.1s;white-space:nowrap
+}
+.btn:active{transform:translate(2px,2px)!important;box-shadow:none!important}
+.btn:disabled{opacity:0.35;cursor:not-allowed;transform:none!important}
+
+.btn-primary{
+  background:var(--yellow);color:var(--black);
+  box-shadow:4px 4px 0 var(--red)
+}
+.btn-primary:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--red)}
+
+.btn-ghost{
+  background:transparent;color:var(--white);
+  border:1px solid rgba(240,235,225,0.25);
+  box-shadow:none;font-size:1.1rem;padding:0.75rem 1.5rem
+}
+.btn-ghost:hover{border-color:var(--white);transform:translate(-1px,-1px)}
+
+.btn-red{background:var(--red);color:var(--white);box-shadow:4px 4px 0 #7a001f}
+.btn-red:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 #7a001f}
+
+.val-msg{font-family:var(--font-mono);font-size:0.78rem;color:var(--red);min-height:1rem;letter-spacing:0.05em}
+
+/* SCOREBOARD */
+.scoreboard{
+  display:flex;gap:0;border:1px solid var(--dim);border-radius:2px;overflow:hidden;width:100%
+}
+.score-cell{
+  flex:1;padding:0.75rem 1rem;text-align:center;border-right:1px solid var(--dim);
+  position:relative
+}
+.score-cell:last-child{border-right:none}
+.score-cell-label{
+  font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.2em;
+  text-transform:uppercase;color:rgba(240,235,225,0.3);margin-bottom:0.3rem
+}
+.score-cell-val{font-family:var(--font-display);font-size:2.2rem;color:var(--yellow);line-height:1}
+.score-cell-val.green{color:var(--green)}
+.score-cell-val.red{color:var(--red)}
+
+/* QUESTION CARD */
+.q-card{
+  width:100%;background:var(--grey);
+  border:1px solid var(--dim);border-radius:2px;
+  padding:1.75rem;position:relative;overflow:hidden
+}
+.q-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--red),var(--yellow),var(--green))
+}
+.q-topic{
+  font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0.25em;
+  text-transform:uppercase;color:var(--yellow);margin-bottom:1rem
+}
+.q-text{font-size:clamp(1.05rem,2.5vw,1.3rem);font-weight:700;line-height:1.5;color:var(--white)}
+
+/* ANSWERS */
+.answers-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.6rem;width:100%}
+@media(max-width:500px){.answers-grid{grid-template-columns:1fr}}
+
+.ans-btn{
+  background:var(--grey);border:1px solid var(--dim);
+  color:var(--white);font-family:var(--font-body);font-size:0.9rem;
+  padding:1rem 1.1rem;border-radius:2px;cursor:pointer;
+  text-align:left;display:flex;gap:0.75rem;align-items:flex-start;
+  line-height:1.45;transition:all 0.15s;position:relative;overflow:hidden
+}
+.ans-btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 60%,rgba(255,255,255,0.03));
+  pointer-events:none
+}
+.ans-btn:hover:not(:disabled){
+  border-color:var(--yellow);
+  background:rgba(245,197,24,0.05);
+  transform:translateY(-2px);
+  box-shadow:0 4px 20px rgba(245,197,24,0.1)
+}
+.ans-btn:disabled{cursor:default;transform:none}
+.ans-btn.chosen{border-color:var(--red);background:rgba(232,0,61,0.08);animation:wrong-pulse 0.5s ease}
+.ans-btn.unchosen{opacity:0.3}
+@keyframes wrong-pulse{
+  0%{box-shadow:0 0 0 0 rgba(232,0,61,0.5)}
+  70%{box-shadow:0 0 0 12px rgba(232,0,61,0)}
+  100%{box-shadow:0 0 0 0 rgba(232,0,61,0)}
+}
+
+.ans-letter{
+  font-family:var(--font-display);font-size:1.4rem;color:var(--yellow);
+  flex-shrink:0;line-height:1.15;min-width:1.2rem
+}
+.ans-chosen .ans-letter{color:var(--red)}
+
+/* EXPLANATION */
+.explanation{
+  width:100%;background:rgba(232,0,61,0.06);
+  border:1px solid rgba(232,0,61,0.4);border-radius:2px;
+  padding:1.25rem 1.5rem;animation:slide-up 0.3s ease
+}
+@keyframes slide-up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.expl-header{
+  font-family:var(--font-display);font-size:1.5rem;color:var(--red);
+  margin-bottom:0.5rem;display:flex;align-items:center;gap:0.5rem
+}
+.expl-text{font-size:0.95rem;line-height:1.65;color:rgba(240,235,225,0.85)}
+
+/* FUN FACT */
+.fun-fact{
+  width:100%;background:rgba(0,255,135,0.04);
+  border:1px solid rgba(0,255,135,0.2);border-radius:2px;
+  padding:1rem 1.25rem;animation:slide-up 0.4s ease 0.1s both
+}
+.fun-fact-header{
+  font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0.2em;
+  color:var(--green);text-transform:uppercase;margin-bottom:0.4rem
+}
+.fun-fact-text{font-size:0.88rem;line-height:1.6;color:rgba(240,235,225,0.6);font-style:italic}
+
+/* LOADING */
+.loading{display:flex;flex-direction:column;align-items:center;gap:1.5rem;padding:3rem 0}
+.loading-bars{display:flex;gap:4px;align-items:flex-end;height:40px}
+.loading-bars span{
+  width:6px;background:var(--yellow);border-radius:1px;
+  animation:bars 0.8s ease-in-out infinite;
+}
+.loading-bars span:nth-child(2){animation-delay:0.1s;background:var(--red)}
+.loading-bars span:nth-child(3){animation-delay:0.2s}
+.loading-bars span:nth-child(4){animation-delay:0.3s;background:var(--green)}
+.loading-bars span:nth-child(5){animation-delay:0.4s;background:var(--red)}
+@keyframes bars{
+  0%,100%{height:8px;opacity:0.4}
+  50%{height:40px;opacity:1}
+}
+.loading-msg{font-family:var(--font-display);font-size:1.6rem;color:var(--yellow);letter-spacing:0.05em;text-align:center}
+.loading-sub{font-family:var(--font-mono);font-size:0.72rem;color:rgba(240,235,225,0.3);letter-spacing:0.1em}
+
+/* ERROR */
+.error-box{
+  width:100%;border:1px solid rgba(232,0,61,0.4);border-radius:2px;
+  padding:2rem;text-align:center;background:rgba(232,0,61,0.05)
+}
+.error-icon{font-size:3rem;margin-bottom:0.75rem}
+.error-msg{font-size:1rem;color:rgba(240,235,225,0.7);margin-bottom:1.5rem;line-height:1.6}
+
+/* ACTION ROW */
+.action-row{display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center}
+
+/* STREAK BADGE */
+.streak-badge{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  background:rgba(0,255,135,0.1);border:1px solid rgba(0,255,135,0.3);
+  padding:0.3rem 0.75rem;border-radius:999px;
+  font-family:var(--font-mono);font-size:0.7rem;color:var(--green);
+  animation:pulse-green 1s ease infinite alternate
+}
+@keyframes pulse-green{from{box-shadow:0 0 0 0 rgba(0,255,135,0.3)}to{box-shadow:0 0 8px 2px rgba(0,255,135,0.1)}}
+
+/* QUESTIONS COUNTER */
+.q-counter{
+  font-family:var(--font-mono);font-size:0.65rem;letter-spacing:0.15em;
+  color:rgba(240,235,225,0.25);text-align:center
+}
+
+/* COPY TO CLIPBOARD */
+.copy-btn{
+  font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.1em;
+  padding:0.4rem 0.9rem;border:1px solid var(--dim);border-radius:2px;
+  background:transparent;color:rgba(240,235,225,0.4);cursor:pointer;
+  transition:all 0.15s
+}
+.copy-btn:hover{border-color:var(--green);color:var(--green)}
+.copy-btn.copied{border-color:var(--green);color:var(--green);background:rgba(0,255,135,0.05)}
+
+/* CONFETTI */
+.confetti-piece{position:fixed;pointer-events:none;animation:fall linear forwards;z-index:9997}
+@keyframes fall{
+  0%{transform:translateY(-20px) rotate(0deg) scale(1);opacity:1}
+  100%{transform:translateY(110vh) rotate(720deg) scale(0.5);opacity:0}
+}
+
+/* DIVIDER */
+.divider{width:100%;height:1px;background:var(--dim)}
+
+/* BOTTOM CREDIT */
+.credit{
+  font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.15em;
+  color:rgba(240,235,225,0.15);text-align:center;margin-top:1rem
+}
+
+/* TRANSITIONS */
+.screen{opacity:0;transition:opacity 0.3s ease}
+.screen.active{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker-track">
+    <span>⚠ ALL ANSWERS ARE WRONG</span><span class="dot">◆</span>
+    <span>WRONG ANSWERS ONLY</span><span class="dot">◆</span>
+    <span>CERTIFIED MISINFORMATION</span><span class="dot">◆</span>
+    <span>PROUDLY INCORRECT</span><span class="dot">◆</span>
+    <span>NO CORRECT ANSWERS WERE HARMED</span><span class="dot">◆</span>
+    <span>FACT-FREE SINCE 2024</span><span class="dot">◆</span>
+    <span>⚠ ALL ANSWERS ARE WRONG</span><span class="dot">◆</span>
+    <span>WRONG ANSWERS ONLY</span><span class="dot">◆</span>
+    <span>CERTIFIED MISINFORMATION</span><span class="dot">◆</span>
+    <span>PROUDLY INCORRECT</span><span class="dot">◆</span>
+    <span>NO CORRECT ANSWERS WERE HARMED</span><span class="dot">◆</span>
+    <span>FACT-FREE SINCE 2024</span><span class="dot">◆</span>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="hero">
+      <div class="hero-label">A quiz game where everything is wrong</div>
+      <div class="logo-wrap">
+        <span class="logo-wrong">WRONG</span>
+        <span class="logo-answers">ANSWERS</span>
+        <span class="logo-only">ONLY</span>
+      </div>
+      <p class="tagline">Every answer is confidently, spectacularly incorrect. Pick your favourite wrong one.</p>
+    </div>
+
+    <div class="input-section">
+      <div class="input-row">
+        <input class="topic-input" id="topic-input" type="text"
+          placeholder="Type any topic… space, pasta, Napoleon, dinosaurs…"
+          maxlength="100" autocomplete="off"/>
+        <button class="btn btn-primary" id="play-btn">PLAY →</button>
+      </div>
+
+      <div class="style-row">
+        <span class="style-label">Style:</span>
+        <button class="style-btn active" data-style="normal">Default</button>
+        <button class="style-btn" data-style="roast">🤵 Corporate</button>
+        <button class="style-btn" data-style="pirate">🏴‍☠️ Pirate</button>
+        <button class="style-btn" data-style="shakespeare">🎭 Shakespeare</button>
+        <button class="style-btn" data-style="unhinged">🤯 Unhinged</button>
+      </div>
+
+      <div class="val-msg" id="val-msg"></div>
+
+      <div class="chips" id="chips">
+        <span class="chip">🚀 Space</span>
+        <span class="chip">🦕 Dinosaurs</span>
+        <span class="chip">🍕 Italian Food</span>
+        <span class="chip">⚔️ Medieval History</span>
+        <span class="chip">🧬 Human Biology</span>
+        <span class="chip">🎸 Rock Music</span>
+        <span class="chip">🐙 Deep Sea</span>
+        <span class="chip">🏛️ Ancient Rome</span>
+        <span class="chip">🤖 Artificial Intelligence</span>
+        <span class="chip">🌋 Geology</span>
+      </div>
+    </div>
+
+    <div class="credit">Built with Claude · Groq LLaMA 3.3 · Zero correct answers guaranteed</div>
+  </div>
+
+  <!-- GAME -->
+  <div class="screen" id="screen-game">
+
+    <div class="scoreboard">
+      <div class="score-cell">
+        <div class="score-cell-label">Score</div>
+        <div class="score-cell-val" id="score-val">0</div>
+      </div>
+      <div class="score-cell">
+        <div class="score-cell-label">Streak 🔥</div>
+        <div class="score-cell-val green" id="streak-val">0</div>
+      </div>
+      <div class="score-cell">
+        <div class="score-cell-label">Best</div>
+        <div class="score-cell-val" id="best-val">0</div>
+      </div>
+      <div class="score-cell">
+        <div class="score-cell-label">Questions</div>
+        <div class="score-cell-val red" id="questions-val">0</div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading-state">
+      <div class="loading-bars">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="loading-msg" id="loading-msg">FABRICATING NONSENSE…</div>
+      <div class="loading-sub" id="loading-sub">consulting the oracle of wrong</div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-box" id="error-state" style="display:none">
+      <div class="error-icon">🤖</div>
+      <div class="error-msg" id="error-msg">Our AI is having an existential crisis.<br>It briefly considered giving you a correct answer. We talked it down.</div>
+      <button class="btn btn-red" id="retry-btn">TRY AGAIN</button>
+    </div>
+
+    <!-- Question area -->
+    <div id="q-area" style="display:none;width:100%;flex-direction:column;gap:0.75rem;align-items:center">
+
+      <div class="q-card">
+        <div class="q-topic" id="q-topic">TOPIC: —</div>
+        <div class="q-text" id="q-text"></div>
+      </div>
+
+      <div class="answers-grid" id="answers-grid"></div>
+
+      <div class="explanation" id="explanation" style="display:none">
+        <div class="expl-header">❌ WRONG! <span style="font-size:1rem;font-family:var(--font-body);color:rgba(240,235,225,0.5)">(obviously)</span></div>
+        <div class="expl-text" id="expl-text"></div>
+      </div>
+
+      <div class="fun-fact" id="fun-fact-box" style="display:none">
+        <div class="fun-fact-header">✦ One true thing</div>
+        <div class="fun-fact-text" id="fun-fact-text"></div>
+      </div>
+
+      <div class="action-row" id="action-row" style="display:none">
+        <button class="btn btn-primary" id="next-btn">NEXT QUESTION →</button>
+        <button class="btn btn-ghost" id="change-btn">CHANGE TOPIC</button>
+        <button class="copy-btn" id="copy-btn" title="Copy question to clipboard">⎘ COPY</button>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ── STATE ──
+let state = {
+  topic: '',
+  style: 'normal',
+  data: null,
+  game: loadGame()
+};
+
+const LOADING = [
+  {msg:"FABRICATING NONSENSE…", sub:"consulting the oracle of wrong"},
+  {msg:"FACT-CHECKING IN REVERSE…", sub:"finding the wrongest possible answer"},
+  {msg:"INVENTING MISINFORMATION…", sub:"with confidence and zero remorse"},
+  {msg:"GENERATING WRONG ANSWERS…", sub:"quality assured incorrect"},
+  {msg:"ASKING SOMEONE WHO DOESN'T KNOW…", sub:"they sounded very sure about it"},
+  {msg:"CERTIFIED INCORRECTNESS…", sub:"loading plausible nonsense"},
+];
+
+// ── PERSISTENCE ──
+function loadGame() {
+  try { return JSON.parse(localStorage.getItem('wao_v2')) || {score:0,streak:0,best:0,questions:0}; }
+  catch { return {score:0,streak:0,best:0,questions:0}; }
+}
+function saveGame() {
+  try { localStorage.setItem('wao_v2', JSON.stringify(state.game)); } catch {}
+}
+function updateBoard() {
+  $('score-val').textContent    = state.game.score;
+  $('streak-val').textContent   = state.game.streak;
+  $('best-val').textContent     = state.game.best;
+  $('questions-val').textContent = state.game.questions;
+}
+
+// ── DOM ──
+const $ = id => document.getElementById(id);
+
+// Style picker
+let activeStyle = 'normal';
+document.querySelectorAll('.style-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeStyle = btn.dataset.style;
+  });
+});
+
+// Chips
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    $('topic-input').value = chip.textContent.replace(/^[^\w]+/,'').trim();
+    $('val-msg').textContent = '';
+    $('topic-input').focus();
+  });
+});
+
+// Play
+$('play-btn').addEventListener('click', startGame);
+$('topic-input').addEventListener('keydown', e => { if(e.key==='Enter') startGame(); });
+
+function startGame() {
+  const topic = $('topic-input').value.trim();
+  if (!topic) {
+    $('val-msg').textContent = '↑ Enter a topic first — anything works';
+    $('topic-input').focus();
+    return;
+  }
+  $('val-msg').textContent = '';
+  state.topic = topic;
+  state.style = activeStyle;
+  showScreen('game');
+  fetchQuestion();
+}
+
+// ── FETCH ──
+async function fetchQuestion() {
+  showLoading(true);
+  hideError();
+  $('q-area').style.display = 'none';
+
+  const r = LOADING[Math.floor(Math.random()*LOADING.length)];
+  $('loading-msg').textContent = r.msg;
+  $('loading-sub').textContent = r.sub;
+
+  try {
+    const res  = await fetch('/api/question', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({topic: state.topic, style: state.style})
+    });
+    const data = await res.json();
+    if (!res.ok) { showError(data.error); return; }
+    state.data = data;
+    renderQuestion(data);
+  } catch(err) {
+    showError('api_failure');
+  }
+}
+
+// ── RENDER ──
+function renderQuestion(data) {
+  showLoading(false);
+  $('q-topic').textContent = `TOPIC: ${state.topic.toUpperCase()} · STYLE: ${state.style.toUpperCase()}`;
+  $('q-text').textContent  = data.question;
+
+  const grid = $('answers-grid');
+  grid.innerHTML = '';
+  ['A','B','C','D'].forEach((label, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'ans-btn';
+    btn.innerHTML = `<span class="ans-letter">${label}</span><span>${data.answers[i]}</span>`;
+    btn.addEventListener('click', () => pick(label, btn));
+    grid.appendChild(btn);
+  });
+
+  $('explanation').style.display    = 'none';
+  $('fun-fact-box').style.display   = 'none';
+  $('action-row').style.display     = 'none';
+  $('copy-btn').classList.remove('copied');
+  $('copy-btn').textContent         = '⎘ COPY';
+  $('q-area').style.display         = 'flex';
+
+  state.game.questions++;
+  saveGame();
+  updateBoard();
+}
+
+// ── PICK ──
+function pick(label, clicked) {
+  document.querySelectorAll('.ans-btn').forEach(btn => {
+    btn.disabled = true;
+    btn.classList.add(btn === clicked ? 'chosen' : 'unchosen');
+  });
+
+  $('expl-text').textContent = state.data.explanations[label];
+  $('explanation').style.display = 'block';
+
+  if (state.data.fun_fact) {
+    $('fun-fact-text').textContent = state.data.fun_fact;
+    $('fun-fact-box').style.display = 'block';
+  }
+
+  $('action-row').style.display = 'flex';
+
+  state.game.score++;
+  state.game.streak++;
+  if (state.game.streak > state.game.best) state.game.best = state.game.streak;
+  saveGame();
+  updateBoard();
+
+  if (state.game.streak >= 3 && state.game.streak % 3 === 0) confetti();
+}
+
+// ── CONTROLS ──
+$('next-btn').addEventListener('click', fetchQuestion);
+$('retry-btn').addEventListener('click', fetchQuestion);
+$('change-btn').addEventListener('click', () => {
+  state.game.streak = 0;
+  saveGame();
+  updateBoard();
+  showScreen('home');
+});
+
+$('copy-btn').addEventListener('click', () => {
+  if (!state.data) return;
+  const text = `Wrong Answers Only — ${state.topic}\n\n${state.data.question}\n\nA) ${state.data.answers[0]}\nB) ${state.data.answers[1]}\nC) ${state.data.answers[2]}\nD) ${state.data.answers[3]}\n\n(All answers are wrong. That's the game.)`;
+  navigator.clipboard.writeText(text).then(() => {
+    $('copy-btn').textContent = '✓ COPIED';
+    $('copy-btn').classList.add('copied');
+    setTimeout(() => {
+      $('copy-btn').textContent = '⎘ COPY';
+      $('copy-btn').classList.remove('copied');
+    }, 2000);
+  });
+});
+
+// ── UI HELPERS ──
+function showScreen(name) {
+  ['home','game'].forEach(s => {
+    const el = $(`screen-${s}`);
+    el.classList.toggle('active', s === name);
+  });
+}
+
+function showLoading(on) {
+  $('loading-state').style.display = on ? 'flex' : 'none';
+}
+
+function hideError() {
+  $('error-state').style.display = 'none';
+}
+
+function showError(code) {
+  showLoading(false);
+  const msgs = {
+    'api_failure': 'Our AI is having an existential crisis.\nIt briefly considered giving you a correct answer. We talked it down.',
+    'topic_required': 'Please enter a topic first.',
+  };
+  $('error-msg').innerHTML = (msgs[code] || msgs['api_failure']).replace('\n','<br>');
+  $('error-state').style.display = 'block';
+}
+
+// ── CONFETTI ──
+function confetti() {
+  const colors = ['#F5C518','#E8003D','#00FF87','#F0EBE1','#FF6B6B'];
+  const shapes = ['50%','2px','0'];
+  for (let i = 0; i < 50; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const size = 6 + Math.random()*10;
+    el.style.cssText = `
+      left:${Math.random()*100}vw;top:-20px;
+      width:${size}px;height:${size}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      border-radius:${shapes[Math.floor(Math.random()*shapes.length)]};
+      animation-duration:${1.5+Math.random()*2}s;
+      animation-delay:${Math.random()*0.5}s;
+    `;
+    document.body.appendChild(el);
+    el.addEventListener('animationend',()=>el.remove());
+  }
+}
+
+// ── INIT ──
+updateBoard();
+</script>
+</body>
+</html>
