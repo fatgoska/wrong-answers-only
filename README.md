@@ -2,7 +2,7 @@
 
 > A trivia game where every answer is confidently, spectacularly wrong. That's the entire joke.
 
-**Live demo:** *(your Replit URL here)*  
+**Live demo:** https://wrong-answers-only--fg9856.replit.app
 **Built with:** Node.js · Express · Groq LLaMA 3.3 70B · Vanilla JS
 
 ---
