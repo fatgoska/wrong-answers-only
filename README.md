@@ -3,7 +3,7 @@
 > A trivia game where every answer is confidently, spectacularly wrong. That's the entire joke.
 
 **Live demo:** https://wrong-answers-only--fg9856.replit.app
-**Built with:** Node.js · Express · Groq LLaMA 3.3 70B · Vanilla JS
+**Built with:** Node.js · Express · Anthropic Claude · Vanilla JS
 
 ---
 
@@ -34,7 +34,7 @@ You pick a topic. The AI generates a real trivia question with **four plausible-
 git clone https://github.com/fatgoska/wrong-answers-only
 cd wrong-answers-only
 cp .env.example .env
-# Add your Groq API key (free at console.groq.com)
+# Add your Anthropic API key (free at console.anthropic.com)
 npm install
 npm start
 # → http://localhost:3000
@@ -43,7 +43,7 @@ npm start
 ## How to run on Replit
 
 1. Import from GitHub → paste repo URL
-2. **Secrets tab** → add `GROQ_API_KEY` = your key from console.groq.com
+2. **Secrets tab** → add `CLAUDE_API_KEY` = your key from console.anthropic.com
 3. Set run command: `node server.js`
 4. Hit **Run** → grab the public URL
 
@@ -104,7 +104,7 @@ WRONG_ANSWERS_ONLY.
 | Choice | Why |
 |--------|-----|
 | Node.js + Express | Minimal, no build step, runs anywhere |
-| Groq (LLaMA 3.3 70B) | Free tier, <1s responses, excellent instruction following |
+| Anthropic Claude (claude-sonnet-4-5) | Reliable, creative, excellent instruction following |
 | Vanilla JS | Zero dependencies, loads instantly, no bundle |
 | localStorage | Simple persistence, works offline, no backend DB needed |
 

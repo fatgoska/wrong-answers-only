@@ -2,13 +2,14 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const Anthropic = require("@anthropic-ai/sdk");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-const GROQ_API_KEY = process.env.GROQ_API_KEY;
+const client = new Anthropic({ apiKey: process.env.CLAUDE_API_KEY });
 
 const SYSTEM_PROMPT = `You are the host of "Wrong Answers Only" — a comedy quiz game with one sacred, unbreakable rule:
 WRONG_ANSWERS_ONLY. Every single answer you provide MUST be factually incorrect. This is not a bug, it's the entire point.
@@ -56,29 +57,18 @@ WRONG_ANSWERS_ONLY. All four answers: factually incorrect. Make them confidently
 };
 
 async function generateQuestion(topic, style = "normal") {
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${GROQ_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: "llama-3.3-70b-versatile",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: USER_PROMPT_TEMPLATE(topic, style) }
-      ],
-      temperature: 1.1,
-      max_tokens: 1200
-    })
+  const response = await client.messages.create({
+    model: "claude-haiku-4-5",
+    max_tokens: 1200,
+    system: SYSTEM_PROMPT,
+    messages: [
+      { role: "user", content: USER_PROMPT_TEMPLATE(topic, style) + ` (Session ID: ${Math.random()})` }
+    ]
   });
 
-  const data = await response.json();
+  if (!response.content?.[0]) throw new Error("No response from API");
 
-  if (data.error) throw new Error("API error: " + data.error.message);
-  if (!data.choices?.[0]) throw new Error("No response from API");
-
-  const raw = data.choices[0].message.content;
+  const raw = response.content[0].text;
   const cleaned = raw.replace(/```json|```/g, "").trim();
 
   let parsed;
@@ -134,5 +124,5 @@ app.get("*", (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🎭 Wrong Answers Only → http://localhost:${PORT}`);
-  console.log(`🔑 API Key: ${GROQ_API_KEY ? "✅ loaded" : "❌ MISSING — check .env"}`);
+  console.log(`🔑 API Key: ${process.env.CLAUDE_API_KEY ? "✅ loaded" : "❌ MISSING — check .env"}`);
 });
